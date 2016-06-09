@@ -16,39 +16,62 @@ def awsPaste(filename_list):
 def listAvailableProfile():
 	pass
 
+def setProfile(profileList):
+	while True:
+		listAvailableProfile()
+		profileName = raw_input("Enter new default profile: ")
+		if profileName in profileList:
+			return profileName
+
 def awsProfileLocation(profile_location):
 	profileList = {}
 	os.chdir(profile_location)
 	with open("credentials", "rU") as profile_file:
 		i = 0 #Counter/Numbers for 
 		for line in profile_file:
-
 			credentialName = re.search("(?<=\[).*(?=\])", line)
 			if credentialName:
 				i += 1
-				profileList(credentialName.group())
+				profileList[i] = credentialName.group()
 	fabprint(profileList)
 	print #For readability
 	return profileList
 
 def helpFile():
 	print "------Command List-------"
-	print "copy [optional aws profile name] [source file] [optional destination]"
-	print "cp == same as copy\n"
-	print "listfile [optional aws profile name] [aws source]"
-	print "ls == same as listfile"
+	print "copy [source files]"
+	print "cp: Same as copy\n"
+	
+	
+	print "listfile [aws location]"
+	print "ls: Same as listfile"
+	print "dir: Same as listfile"
 	print "NOTE: If a previous listfile command is used, you can simply call it up from memory using listfile or ls\n"
+	
+	print "profile [profile number]"
+
+	print "quit: Quits this script"
+	print "q: Same as quit"
+	print "exit: Same as quit\n"
+
+	print "help: Opens up this command list\n"	
 	return
 
 def missingProfile():
 	print "Missing default profile. Please use [profile] to set new profile.\n"
 
 def main():
-	quit = ["q", "quit"]
+	# Commands and response lists
+	quit = ["q", "quit", "exit"]
 	listFileCommand = ["listfile", "ls", "dir"]
 	copyCommand = ["copy", "cp"]
-	fileList = []
-	profile = ""
+	profile = ["profile", "p"]
+	yes = ["y", "yes"]
+	no = ["n", "no"]
+
+	# Constants kept in memory
+	fileList = [] #ls that is kept in memory
+	profileName = "" #Current name of profile kept in memory
 
 	# Get current dir and print it so user knows what's initialized
 	current_dir = os.getcwd()
@@ -80,7 +103,8 @@ def main():
 
 		# Quits awscli easy command
 		if desiredFunction in quit:
-			"Quitting..."
+			"""Should check if there are threads in process here"""
+			print "Quitting..."
 			break
 
 		# Displays help file on commands
@@ -89,22 +113,33 @@ def main():
 
 		# Lists profiles available and accepts an existing profile
 		elif desiredFunction in profile:
-			listAvailableProfile()
-			while True:
-				profile = raw_input("Enter new default profile: ")
+			setProfile()
 
-		# Copies
+		# Copies files to a local location
 		elif desiredFunction in copyCommand:
-			if profile == "":
+			if profileName == "":
 				missingProfile()
 				continue
+			print "Current profile: " + profile
+
+			# Check if there is already arguments for files
+			if responseList > 1:
+				fileList = responseList[1:]
+
+			# Create a list of files to pull
+			else:
+				rawFileString = raw_input("Enter files to copy, separated by space: "))
+				fileList = rawFileString.split(" ")
+
+			while True:
+				destination = list(raw_input("Enter destination to copy file to, leave blank to default to the current directory: "))
+				if os.path.isdir(destination) != True:
+					print "Destination does not exist, try again.\n"
+			responseList.append(destination)
+
 			if responseList > 1:
 				awsCopy(responseList)
-			print "Current profile: " + profile
-			responseList.append(raw_input("Enter profile to copy use: "))
-			responseList.append(raw_input("Enter file to copy: "))
-			responseList.append(raw_input("Enter destination to copy file to: "))
-			awsCopy(responseList)
+			
 		elif desiredFunction in listFilesCommand:
 			if fileList == []:
 				print "No file list in memory."
